@@ -19,12 +19,11 @@ import { z } from 'zod'
 import {
   buildSignatureHeader,
   buildSigningContent,
-  DEFAULT_KEY_VERSION,
   signContent,
   verifyMessage,
 } from '@/modules/pay-via-worldfirst-for-shop/lib/signature'
 import { getWorldFirstCredentials, type WorldFirstEnvironment } from '@/modules/pay-via-worldfirst-for-shop/lib/env'
-import { apiBaseUrlFor, getWorldFirstSettings } from '@/modules/pay-via-worldfirst-for-shop/lib/settings'
+import { apiBaseUrlFor, getWorldFirstSettings, keyVersionFor } from '@/modules/pay-via-worldfirst-for-shop/lib/settings'
 import { parseMinorUnits, toMinorUnits } from '@/modules/pay-via-worldfirst-for-shop/lib/amount'
 import { parseWorldFirstPaymentStatus, type WorldFirstPaymentStatus } from '@/modules/pay-via-worldfirst-for-shop/lib/status'
 
@@ -55,7 +54,8 @@ const AmountSchema = z.object({
 async function signedPost(environment: WorldFirstEnvironment, path: string, body: unknown): Promise<unknown> {
   const creds = getWorldFirstCredentials(environment)
   if (!creds.clientId || !creds.privateKey) throw new Error('WorldFirst is not configured')
-  const baseUrl = apiBaseUrlFor(await getWorldFirstSettings(), environment)
+  const settings = await getWorldFirstSettings()
+  const baseUrl = apiBaseUrlFor(settings, environment)
   if (!baseUrl) throw new Error(`Enter the ${environment} API address WorldFirst gave you first.`)
 
   const rawBody = JSON.stringify(body)
@@ -69,7 +69,7 @@ async function signedPost(environment: WorldFirstEnvironment, path: string, body
     // nothing. The key is the thing to fix, so say so.
     throw new Error('Your private key could not be read. Paste the whole key again, BEGIN and END lines included, and redeploy.')
   }
-  const signature = buildSignatureHeader(signatureValue, DEFAULT_KEY_VERSION)
+  const signature = buildSignatureHeader(signatureValue, keyVersionFor(settings, environment))
 
   const res = await fetch(`${baseUrl}${path}`, {
     method: 'POST',
@@ -109,7 +109,10 @@ async function signedPost(environment: WorldFirstEnvironment, path: string, body
 }
 
 function describeFailure(result: z.infer<typeof ResultSchema>): string {
-  return result.resultMessage?.trim() || result.resultCode
+  // Both, because the message alone ("key not found") often does not say which
+  // thing to fix and the code is what WorldFirst's support will ask for.
+  const message = result.resultMessage?.trim()
+  return message ? `${message} (${result.resultCode})` : result.resultCode
 }
 
 // --- createCashierPayment ---------------------------------------------------

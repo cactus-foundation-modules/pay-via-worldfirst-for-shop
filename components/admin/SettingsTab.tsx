@@ -84,6 +84,8 @@ type Settings = {
   environment: Environment
   apiBaseUrlSandbox: string
   apiBaseUrlProduction: string
+  keyVersionSandbox: string
+  keyVersionProduction: string
   acceptedCurrencies: string[]
 }
 
@@ -249,6 +251,7 @@ export function WorldFirstSettingsTab() {
     if (!meta) return null
     const isLive = environment === env
     const addressKey = env === 'sandbox' ? 'apiBaseUrlSandbox' : 'apiBaseUrlProduction'
+    const versionKey = env === 'sandbox' ? 'keyVersionSandbox' : 'keyVersionProduction'
 
     return (
       <div
@@ -294,6 +297,25 @@ export function WorldFirstSettingsTab() {
               placeholder="https://…"
               onChange={(e) => setSettings({ ...settings, [addressKey]: e.target.value })}
               onBlur={() => saveSettings({ [addressKey]: settings[addressKey] })}
+            />
+          </div>
+        )}
+
+        {settings && (
+          <div className="field">
+            <label htmlFor={`wfp-keyversion-${env}`}>Key version</label>
+            <p style={{ ...subtleText, margin: '0 0 var(--space-2)' }}>
+              The version number WorldFirst&apos;s developer portal shows next to the public key you
+              registered for this environment. Leave it at 1 unless the portal says otherwise - a
+              &quot;key not found&quot; error from WorldFirst usually means this does not match.
+            </p>
+            <input
+              id={`wfp-keyversion-${env}`}
+              type="text"
+              inputMode="numeric"
+              value={settings[versionKey]}
+              onChange={(e) => setSettings({ ...settings, [versionKey]: e.target.value })}
+              onBlur={() => saveSettings({ [versionKey]: settings[versionKey] })}
             />
           </div>
         )}

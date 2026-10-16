@@ -26,6 +26,10 @@ export type WorldFirstSettings = {
   environment: WorldFirstEnvironment
   apiBaseUrlSandbox: string
   apiBaseUrlProduction: string
+  // Sent as keyVersion in the Signature header: the version WorldFirst's portal
+  // shows for the public key registered against the Client ID.
+  keyVersionSandbox: string
+  keyVersionProduction: string
   acceptedCurrencies: string[]
 }
 
@@ -35,6 +39,8 @@ const FALLBACK: WorldFirstSettings = {
   environment: FALLBACK_ENVIRONMENT,
   apiBaseUrlSandbox: '',
   apiBaseUrlProduction: '',
+  keyVersionSandbox: '1',
+  keyVersionProduction: '1',
   acceptedCurrencies: ['GBP'],
 }
 
@@ -67,6 +73,17 @@ export function normaliseApiBaseUrl(stored: unknown): string {
   }
 }
 
+/** A key version is a short whole number. Anything else reads as 1, which is
+ *  the version WorldFirst's own samples use. */
+export function normaliseKeyVersion(stored: unknown): string {
+  const text = typeof stored === 'number' ? String(stored) : typeof stored === 'string' ? stored.trim() : ''
+  return /^\d{1,3}$/.test(text) ? text : '1'
+}
+
+export function keyVersionFor(settings: Pick<WorldFirstSettings, 'keyVersionSandbox' | 'keyVersionProduction'>, environment: WorldFirstEnvironment): string {
+  return environment === 'sandbox' ? settings.keyVersionSandbox : settings.keyVersionProduction
+}
+
 export function apiBaseUrlFor(settings: Pick<WorldFirstSettings, 'apiBaseUrlSandbox' | 'apiBaseUrlProduction'>, environment: WorldFirstEnvironment): string {
   return environment === 'sandbox' ? settings.apiBaseUrlSandbox : settings.apiBaseUrlProduction
 }
@@ -83,6 +100,8 @@ export async function getWorldFirstSettings(): Promise<WorldFirstSettings> {
     environment: toEnvironment(r.environment),
     apiBaseUrlSandbox: normaliseApiBaseUrl(r.api_base_url_sandbox),
     apiBaseUrlProduction: normaliseApiBaseUrl(r.api_base_url_production),
+    keyVersionSandbox: normaliseKeyVersion(r.key_version_sandbox),
+    keyVersionProduction: normaliseKeyVersion(r.key_version_production),
     acceptedCurrencies: parseAcceptedCurrencies(r.accepted_currencies),
   }
 }
@@ -95,18 +114,22 @@ export async function updateWorldFirstSettings(input: Partial<WorldFirstSettings
     paymentDescription: clampPaymentDescription(input.paymentDescription ?? current.paymentDescription),
     apiBaseUrlSandbox: input.apiBaseUrlSandbox !== undefined ? normaliseApiBaseUrl(input.apiBaseUrlSandbox) : current.apiBaseUrlSandbox,
     apiBaseUrlProduction: input.apiBaseUrlProduction !== undefined ? normaliseApiBaseUrl(input.apiBaseUrlProduction) : current.apiBaseUrlProduction,
+    keyVersionSandbox: input.keyVersionSandbox !== undefined ? normaliseKeyVersion(input.keyVersionSandbox) : current.keyVersionSandbox,
+    keyVersionProduction: input.keyVersionProduction !== undefined ? normaliseKeyVersion(input.keyVersionProduction) : current.keyVersionProduction,
     acceptedCurrencies: input.acceptedCurrencies ? parseAcceptedCurrencies(input.acceptedCurrencies.join(',')) : current.acceptedCurrencies,
   }
   const currencies = merged.acceptedCurrencies.join(',')
   await prisma.$executeRaw`
-    INSERT INTO "wfp_settings" ("id", "enabled", "payment_description", "environment", "api_base_url_sandbox", "api_base_url_production", "accepted_currencies", "updated_at")
-    VALUES ('singleton', ${merged.enabled}, ${merged.paymentDescription}, ${merged.environment}, ${merged.apiBaseUrlSandbox}, ${merged.apiBaseUrlProduction}, ${currencies}, CURRENT_TIMESTAMP)
+    INSERT INTO "wfp_settings" ("id", "enabled", "payment_description", "environment", "api_base_url_sandbox", "api_base_url_production", "key_version_sandbox", "key_version_production", "accepted_currencies", "updated_at")
+    VALUES ('singleton', ${merged.enabled}, ${merged.paymentDescription}, ${merged.environment}, ${merged.apiBaseUrlSandbox}, ${merged.apiBaseUrlProduction}, ${merged.keyVersionSandbox}, ${merged.keyVersionProduction}, ${currencies}, CURRENT_TIMESTAMP)
     ON CONFLICT ("id") DO UPDATE SET
       "enabled" = ${merged.enabled},
       "payment_description" = ${merged.paymentDescription},
       "environment" = ${merged.environment},
       "api_base_url_sandbox" = ${merged.apiBaseUrlSandbox},
       "api_base_url_production" = ${merged.apiBaseUrlProduction},
+      "key_version_sandbox" = ${merged.keyVersionSandbox},
+      "key_version_production" = ${merged.keyVersionProduction},
       "accepted_currencies" = ${currencies},
       "updated_at" = CURRENT_TIMESTAMP
   `

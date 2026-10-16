@@ -33,6 +33,8 @@ const PatchBody = z.object({
   environment: z.enum(['sandbox', 'production']).optional(),
   apiBaseUrlSandbox: ApiAddress.optional(),
   apiBaseUrlProduction: ApiAddress.optional(),
+  keyVersionSandbox: z.string().regex(/^\d{1,3}$/, 'The key version is a short whole number, like 1').optional(),
+  keyVersionProduction: z.string().regex(/^\d{1,3}$/, 'The key version is a short whole number, like 1').optional(),
   acceptedCurrencies: z.array(z.string().regex(/^[A-Za-z]{3}$/, 'Currencies are three-letter codes, like GBP')).min(1).max(20).optional(),
 })
 
