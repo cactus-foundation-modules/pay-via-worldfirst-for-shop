@@ -108,11 +108,20 @@ async function signedPost(environment: WorldFirstEnvironment, path: string, body
   }
 }
 
-function describeFailure(result: z.infer<typeof ResultSchema>): string {
+// KEY_NOT_FOUND comes back before the signature is even looked at: the host
+// knows the Client ID but holds no public key for it. Seen on a sandbox app
+// whose portal named https://open-eu.worldfirst.com as its gateway while the
+// key it had saved was only on https://open-sea.worldfirst.com - so the useful
+// advice is the address, not the key.
+const KEY_NOT_FOUND_HINT =
+  'WorldFirst knows this Client ID but holds no public key for it at this API address. Check the public key is saved in WorldFirst\'s portal for this environment, then try the other regional address (https://open-sea.worldfirst.com, https://open-eu.worldfirst.com).'
+
+export function describeFailure(result: z.infer<typeof ResultSchema>): string {
   // Both, because the message alone ("key not found") often does not say which
   // thing to fix and the code is what WorldFirst's support will ask for.
   const message = result.resultMessage?.trim()
-  return message ? `${message} (${result.resultCode})` : result.resultCode
+  const described = message ? `${message} (${result.resultCode})` : result.resultCode
+  return result.resultCode === 'KEY_NOT_FOUND' ? `${described}. ${KEY_NOT_FOUND_HINT}` : described
 }
 
 // --- createCashierPayment ---------------------------------------------------

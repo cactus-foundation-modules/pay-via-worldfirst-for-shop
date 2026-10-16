@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { readInquiryResponse, requestTimestamp } from '@/modules/pay-via-worldfirst-for-shop/lib/worldfirst'
+import { describeFailure, readInquiryResponse, requestTimestamp } from '@/modules/pay-via-worldfirst-for-shop/lib/worldfirst'
 import { UnknownWorldFirstStatusError } from '@/modules/pay-via-worldfirst-for-shop/lib/status'
 
 const ok = { resultStatus: 'S', resultCode: 'SUCCESS', resultMessage: 'success.' }
@@ -69,5 +69,18 @@ describe('readInquiryResponse', () => {
 describe('requestTimestamp', () => {
   it('is ISO 8601 to the second with an explicit offset', () => {
     expect(requestTimestamp(new Date('2026-10-16T09:30:00.123Z'))).toBe('2026-10-16T09:30:00+00:00')
+  })
+})
+
+describe('describeFailure', () => {
+  it('keeps the message and the code together', () => {
+    expect(describeFailure({ resultStatus: 'F', resultCode: 'INVALID_SIGNATURE', resultMessage: 'signature is invalid' }))
+      .toBe('signature is invalid (INVALID_SIGNATURE)')
+  })
+
+  it('points a missing key at the API address', () => {
+    const text = describeFailure({ resultStatus: 'F', resultCode: 'KEY_NOT_FOUND', resultMessage: 'key not found' })
+    expect(text.startsWith('key not found (KEY_NOT_FOUND). ')).toBe(true)
+    expect(text).toContain('https://open-sea.worldfirst.com')
   })
 })
