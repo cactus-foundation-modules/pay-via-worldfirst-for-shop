@@ -61,7 +61,15 @@ async function signedPost(environment: WorldFirstEnvironment, path: string, body
   const rawBody = JSON.stringify(body)
   const time = requestTimestamp()
   const content = buildSigningContent({ method: 'POST', path, clientId: creds.clientId, time, body: rawBody })
-  const signature = buildSignatureHeader(signContent(content, creds.privateKey), DEFAULT_KEY_VERSION)
+  let signatureValue: string
+  try {
+    signatureValue = signContent(content, creds.privateKey)
+  } catch {
+    // OpenSSL's own message ("DECODER routines::unsupported") tells an owner
+    // nothing. The key is the thing to fix, so say so.
+    throw new Error('Your private key could not be read. Paste the whole key again, BEGIN and END lines included, and redeploy.')
+  }
+  const signature = buildSignatureHeader(signatureValue, DEFAULT_KEY_VERSION)
 
   const res = await fetch(`${baseUrl}${path}`, {
     method: 'POST',

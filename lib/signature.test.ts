@@ -68,6 +68,20 @@ describe('normalisePem', () => {
     expect(normalisePem(privateKey, 'private')).toBe(privateKey.trim())
   })
 
+  it('rebuilds a PEM whose line breaks were flattened to spaces', () => {
+    const flattened = privateKey.trim().replace(/\n/g, ' ')
+    const content = buildSigningContent(message)
+    expect(verifyContent(content, signContent(content, flattened), publicKey)).toBe(true)
+    expect(normalisePem(flattened, 'private')).toBe(privateKey.trim())
+  })
+
+  it('copes with surrounding quotes and a flattened public key', () => {
+    const content = buildSigningContent(message)
+    const quoted = `"${privateKey.trim().replace(/\n/g, '\\n')}"`
+    const flatPublic = publicKey.trim().replace(/\n/g, ' ')
+    expect(verifyContent(content, signContent(content, quoted), flatPublic)).toBe(true)
+  })
+
   it('reads a PEM held on one line with literal \\n', () => {
     const oneLine = privateKey.trim().replace(/\n/g, '\\n')
     const content = buildSigningContent(message)

@@ -26,13 +26,17 @@ export function buildSigningContent(input: {
   return `${input.method.toUpperCase()} ${input.path}\n${input.clientId}.${input.time}.${input.body}`
 }
 
-/** Accept a PEM as pasted, a PEM with literal "\n" (how a one-line env var
- *  carries one), or the bare base64 body. Returns a PEM node:crypto can load. */
+/** Accept a key however it survived storage: a PEM as pasted, a PEM with literal
+ *  "\n", a PEM whose line breaks were flattened to spaces (which is what an
+ *  environment variable store can do to a multi-line value), one wrapped in
+ *  quotes, or the bare base64 body. Returns a clean, 64-column PEM node:crypto
+ *  can load. The label (PRIVATE KEY, RSA PRIVATE KEY, PUBLIC KEY...) is kept as
+ *  written, because it says which encoding the body is. */
 export function normalisePem(raw: string, kind: 'private' | 'public'): string {
-  const unescaped = raw.trim().replace(/\\n/g, '\n')
-  if (unescaped.includes('-----BEGIN')) return unescaped
-  const body = unescaped.replace(/\s+/g, '')
-  const label = kind === 'private' ? 'PRIVATE KEY' : 'PUBLIC KEY'
+  const cleaned = raw.trim().replace(/^["']|["']$/g, '').replace(/\\n/g, '\n')
+  const fenced = /-----BEGIN ([A-Z ]+)-----([\s\S]*?)-----END \1-----/.exec(cleaned)
+  const label = fenced?.[1] ?? (kind === 'private' ? 'PRIVATE KEY' : 'PUBLIC KEY')
+  const body = (fenced?.[2] ?? cleaned).replace(/\s+/g, '')
   const lines = body.match(/.{1,64}/g) ?? []
   return `-----BEGIN ${label}-----\n${lines.join('\n')}\n-----END ${label}-----`
 }
