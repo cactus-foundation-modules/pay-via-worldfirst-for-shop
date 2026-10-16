@@ -1,0 +1,7 @@
+{
+  "name": "cactus-module-pay-via-worldfirst-for-shop",
+  "version": "0.1.0",
+  "description": "Pay via WorldFirst for the Cactus Shop",
+  "license": "MIT",
+  "private": true
+}

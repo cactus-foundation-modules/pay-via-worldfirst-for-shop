@@ -1,0 +1,51 @@
+{
+  "name": "pay-via-worldfirst-for-shop",
+  "version": "0.1.0",
+  "tablePrefix": "wfp_",
+  "description": "Pay via WorldFirst for the Shop: shoppers are sent to WorldFirst's hosted cashier to pay, and the order confirms itself the moment WorldFirst says the money is in. Refunds are recorded in the shop and sent from your WorldFirst account.",
+  "requiresCoreVersion": "0.5.1763",
+  "requiresModules": [
+    {
+      "name": "shop",
+      "minVersion": "0.1.370"
+    }
+  ],
+  "requiredEnvVars": [
+    { "name": "WORLDFIRST_CLIENT_ID", "required": false },
+    { "name": "WORLDFIRST_PRIVATE_KEY", "required": false },
+    { "name": "WORLDFIRST_PUBLIC_KEY", "required": false },
+    { "name": "WORLDFIRST_SANDBOX_CLIENT_ID", "required": false },
+    { "name": "WORLDFIRST_SANDBOX_PRIVATE_KEY", "required": false },
+    { "name": "WORLDFIRST_SANDBOX_PUBLIC_KEY", "required": false }
+  ],
+  "permissions": [],
+  "settingsTabs": [
+    {
+      "id": "pay-via-worldfirst",
+      "label": "Pay via WorldFirst",
+      "permission": "shop.manage",
+      "host": "shop.payments",
+      "import": "./components/admin/SettingsTab",
+      "component": "WorldFirstSettingsTab"
+    }
+  ],
+  "extensionPoints": [
+    {
+      "point": "shop.payment-providers",
+      "id": "pay-via-worldfirst",
+      "import": "./lib/provider",
+      "component": "worldFirstProvider"
+    }
+  ],
+  "teardown": [
+    "wfp_payments",
+    "wfp_settings"
+  ],
+  "cookieCategories": [],
+  "cronJobs": [],
+  "memberExtensions": {
+    "activityTypes": [],
+    "notificationCategories": [],
+    "routeTiers": []
+  }
+}
