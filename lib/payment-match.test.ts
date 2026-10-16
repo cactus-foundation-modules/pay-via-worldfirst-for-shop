@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { paymentMatchesOrder } from '@/modules/pay-via-worldfirst-for-shop/lib/settle'
+import { paymentMatchesOrder } from '@/modules/pay-via-worldfirst-for-shop/lib/payment-match'
 
 // A payment can only fulfil an order if it is for that order's money.
 

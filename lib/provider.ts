@@ -15,7 +15,7 @@ import * as worldfirst from '@/modules/pay-via-worldfirst-for-shop/lib/worldfirs
 import { worldFirstSettlementOutcome } from '@/modules/pay-via-worldfirst-for-shop/lib/status'
 import { isAcceptedCurrency, toMinorUnits, roundToCurrency } from '@/modules/pay-via-worldfirst-for-shop/lib/amount'
 import { createWfpPayment, getWfpPaymentByOrderId, updateWfpPayment } from '@/modules/pay-via-worldfirst-for-shop/lib/db'
-import { paymentMatchesOrder } from '@/modules/pay-via-worldfirst-for-shop/lib/settle'
+import { paymentMatchesOrder } from '@/modules/pay-via-worldfirst-for-shop/lib/payment-match'
 import { RETURN_PATH, isReachableWebhookUrl, worldFirstWebhookUrl } from '@/modules/pay-via-worldfirst-for-shop/lib/webhook-url'
 
 const METHOD_ID = 'WORLDFIRST'
