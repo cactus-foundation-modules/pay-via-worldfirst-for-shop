@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="module-art.webp" alt="Pay via WorldFirst" width="640" />
+</p>
+
 # Pay via WorldFirst for Shop
 
 Adds **Pay via WorldFirst** as a checkout payment method in the Cactus Shop, using

@@ -1,6 +1,6 @@
 {
   "name": "pay-via-worldfirst-for-shop",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "tablePrefix": "wfp_",
   "description": "Pay via WorldFirst for the Shop: shoppers are sent to WorldFirst's hosted cashier to pay, and the order confirms itself the moment WorldFirst says the money is in. Refunds are recorded in the shop and sent from your WorldFirst account.",
   "requiresCoreVersion": "0.5.1763",
